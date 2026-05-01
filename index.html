@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DidácticaWeb4.0 - Herramienta para Docentes Peruanos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- PDF Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mineduBlue: '#003366',
+                        mineduYellow: '#FFD100',
+                        mineduOrange: '#FF6B00',
+                        mineduWhite: '#FFFFFF'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos base para el documento generado */
+        .document-preview h1 { font-size: 1.5rem; font-weight: bold; color: #003366; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .document-preview h2 { font-size: 1.25rem; font-weight: bold; color: #FF6B00; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .document-preview h3 { font-size: 1.1rem; font-weight: 600; margin-top: 0.75rem; }
+        .document-preview p { margin-bottom: 0.5rem; line-height: 1.5; }
+        .document-preview ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .document-preview ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1rem; }
+        .document-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.9rem; }
+        .document-preview th, .document-preview td { border: 1px solid #cbd5e1; padding: 0.5rem; text-align: left; }
+        .document-preview th { background-color: #f1f5f9; font-weight: bold; color: #003366; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Spinner */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #FF6B00; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 flex flex-col min-h-screen font-sans text-slate-800">
+
+    <!-- Navegación -->
+    <header class="bg-mineduBlue text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('inicio')">
+                    <i data-lucide="graduation-cap" class="text-mineduYellow w-8 h-8"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Didáctica<span class="text-mineduYellow">Web</span><span class="text-mineduOrange">4.0</span></h1>
+                        <p class="text-xs text-blue-200">Planificación Curricular - CNEB Perú</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex gap-6">
+                    <button onclick="switchTab('inicio')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="inicio">Inicio</button>
+                    <button onclick="switchTab('generador')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="generador">Asistente IA</button>
+                    <button onclick="switchTab('biblioteca')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="biblioteca">Biblioteca</button>
+                </nav>
+                <button class="md:hidden text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+            <!-- Menú Móvil -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2 flex flex-col gap-2">
+                <button onclick="switchTab('inicio'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2 border-b border-blue-800">Inicio</button>
+                <button onclick="switchTab('generador'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2 border-b border-blue-800">Asistente IA</button>
+                <button onclick="switchTab('biblioteca'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2">Biblioteca</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        
+        <!-- VISTA: INICIO -->
+        <section id="inicio" class="tab-content active max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-mineduOrange">
+                <h2 class="text-3xl font-bold text-mineduBlue mb-4">Bienvenido a DidácticaWeb4.0</h2>
+                <p class="text-lg text-slate-600 mb-6">La primera plataforma de planificación curricular potenciada por Inteligencia Artificial, diseñada exclusivamente para docentes de Educación Básica Regular (EBR) en el Perú.</p>
+                <div class="grid md:grid-cols-3 gap-6 mb-8 text-left">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <i data-lucide="layout-template" class="text-mineduOrange w-8 h-8 mb-2"></i>
+                        <h3 class="font-bold text-mineduBlue mb-1">Alineado al CNEB</h3>
+                        <p class="text-sm text-slate-600">Competencias, capacidades y enfoques transversales actualizados según el MINEDU.</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <i data-lucide="bot" class="text-mineduOrange w-8 h-8 mb-2"></i>
+                        <h3 class="font-bold text-mineduBlue mb-1">Generación IA</h3>
+                        <p class="text-sm text-slate-600">Crea sesiones, unidades y rúbricas completas en segundos con nuestra IA experta.</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <i data-lucide="file-down" class="text-mineduOrange w-8 h-8 mb-2"></i>
+                        <h3 class="font-bold text-mineduBlue mb-1">Formatos Oficiales</h3>
+                        <p class="text-sm text-slate-600">Exporta directamente a Word (.docx) o PDF, listos para imprimir y presentar.</p>
+                    </div>
+                </div>
+                <button onclick="switchTab('generador')" class="bg-mineduOrange hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-full shadow-md transition-transform transform hover:scale-105 flex items-center gap-2 mx-auto">
+                    <i data-lucide="sparkles"></i>
+                    Empezar a Planificar
+                </button>
+            </div>
+        </section>
+
+        <!-- VISTA: GENERADOR IA -->
+        <section id="generador" class="tab-content w-full">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Formulario -->
+                <div class="w-full lg:w-1/3 bg-white p-6 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-4">
+                    <div class="flex items-center gap-2 mb-2 border-b pb-4">
+                        <i data-lucide="settings-2" class="text-mineduBlue"></i>
+                        <h2 class="text-xl font-bold text-mineduBlue">Parámetros CNEB</h2>
+                    </div>
+
+                    <!-- Tipo de Documento -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tipo de Documento</label>
+                        <select id="tipoDocumento" onchange="updateFormFields()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow focus:border-mineduBlue outline-none">
+                            <option value="Sesión de Aprendizaje">Sesión de Aprendizaje</option>
+                            <option value="Unidad Didáctica">Unidad Didáctica</option>
+                            <option value="Proyecto de Aprendizaje">Proyecto de Aprendizaje</option>
+                            <option value="Programación Anual">Programación Anual</option>
+                            <option value="Rúbrica de Evaluación">Rúbrica de Evaluación</option>
+                        </select>
+                    </div>
+
+                    <!-- Nivel -->
+                    <div id="divNivel">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nivel / Ciclo</label>
+                        <select id="nivel" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none" onchange="updateGrados()">
+                            <option value="">Seleccione Nivel</option>
+                            <option value="Inicial">Inicial</option>
+                            <option value="Primaria">Primaria</option>
+                            <option value="Secundaria">Secundaria</option>
+                        </select>
+                    </div>
+
+                    <!-- Grado -->
+                    <div id="divGrado">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Grado / Edad</label>
+                        <select id="grado" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none disabled:bg-slate-100" disabled onchange="updateAreas()">
+                            <option value="">Seleccione Nivel primero</option>
+                        </select>
+                    </div>
+
+                    <!-- Área Curricular -->
+                    <div id="divArea">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Área Curricular</label>
+                        <select id="area" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none disabled:bg-slate-100" disabled onchange="updateCompetencias()">
+                            <option value="">Seleccione Grado primero</option>
+                        </select>
+                    </div>
+
+                    <!-- Competencias -->
+                    <div id="divCompetencias">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Competencia(s)</label>
+                        <div id="competenciasContainer" class="max-h-32 overflow-y-auto border border-slate-300 rounded-lg p-2 bg-slate-50 text-sm space-y-1">
+                            <p class="text-slate-400 italic">Seleccione Área primero</p>
+                        </div>
+                    </div>
+
+                    <!-- Enfoques Transversales -->
+                    <div id="divEnfoque">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Enfoque Transversal</label>
+                        <select id="enfoque" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none">
+                            <option value="Enfoque de Derechos">Enfoque de Derechos</option>
+                            <option value="Enfoque Inclusivo o de Atención a la Diversidad">Enfoque Inclusivo o de Atención a la Diversidad</option>
+                            <option value="Enfoque Intercultural">Enfoque Intercultural</option>
+                            <option value="Enfoque de Igualdad de Género">Enfoque de Igualdad de Género</option>
+                            <option value="Enfoque Ambiental">Enfoque Ambiental</option>
+                            <option value="Enfoque Orientación al Bien Común">Enfoque Orientación al Bien Común</option>
+                            <option value="Enfoque Búsqueda de la Excelencia">Enfoque Búsqueda de la Excelencia</option>
+                        </select>
+                    </div>
+
+                    <!-- Instrumento de Evaluación (Solo para Sesión de Aprendizaje) -->
+                    <div id="divInstrumento" style="display: none;">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1 text-mineduOrange">Instrumento de Evaluación</label>
+                        <select id="instrumento" class="w-full p-2 border border-mineduOrange rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none bg-orange-50">
+                            <option value="Lista de cotejo">Lista de cotejo</option>
+                            <option value="Rúbrica">Rúbrica</option>
+                            <option value="Escala de valoración">Escala de valoración</option>
+                            <option value="Ficha de observación">Ficha de observación</option>
+                            <option value="Portafolio">Portafolio</option>
+                        </select>
+                    </div>
+
+                    <!-- Tema -->
+                    <div id="divTema">
+                        <label id="labelTema" class="block text-sm font-semibold text-slate-700 mb-1">Tema o Título de la Sesión</label>
+                        <input type="text" id="tema" placeholder="Ej: Conocemos el sistema digestivo..." class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none">
+                    </div>
+
+                    <button id="btnGenerar" onclick="generarDocumento()" class="w-full bg-mineduBlue hover:bg-blue-800 text-white font-bold py-3 rounded-lg mt-4 transition-colors flex justify-center items-center gap-2">
+                        <i data-lucide="cpu"></i>
+                        Generar Documento con IA
+                    </button>
+                    
+                    <div id="errorMsg" class="text-red-500 text-sm hidden font-medium mt-2"></div>
+                </div>
+
+                <!-- Vista Previa -->
+                <div class="w-full lg:w-2/3 bg-white p-0 rounded-2xl shadow-lg border border-slate-200 flex flex-col h-[800px]">
+                    <div class="p-4 border-b bg-slate-50 rounded-t-2xl flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="file-text" class="text-mineduOrange"></i>
+                            <h2 class="text-lg font-bold text-mineduBlue">Vista Previa del Documento</h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="exportarWord()" id="btnWord" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition">
+                                <i data-lucide="file-word" class="w-4 h-4"></i> Word (.docx)
+                            </button>
+                            <button onclick="exportarPDF()" id="btnPdf" class="hidden bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm font-medium flex items-center gap-1 transition">
+                                <i data-lucide="file" class="w-4 h-4"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="outputArea" class="p-8 overflow-y-auto flex-grow bg-white document-preview">
+                        <!-- Estado inicial -->
+                        <div id="emptyState" class="h-full flex flex-col items-center justify-center text-slate-400">
+                            <i data-lucide="book-open" class="w-16 h-16 mb-4 opacity-50"></i>
+                            <p>Complete el formulario y presione "Generar Documento"</p>
+                        </div>
+                        <!-- Loader -->
+                        <div id="loadingState" class="hidden h-full flex flex-col items-center justify-center text-mineduBlue">
+                            <div class="loader mb-4"></div>
+                            <p class="font-semibold animate-pulse">La Inteligencia Artificial está redactando el documento...</p>
+                            <p class="text-sm text-slate-500 mt-2">Aplicando lineamientos del CNEB MINEDU</p>
+                        </div>
+                        <!-- Contenido Generado -->
+                        <div id="generatedContent" class="hidden"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA: BIBLIOTECA -->
+        <section id="biblioteca" class="tab-content max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="library" class="text-mineduBlue w-8 h-8"></i>
+                <h2 class="text-2xl font-bold text-mineduBlue">Biblioteca de Recursos</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Tarjeta 1 -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-blue-100 text-mineduBlue rounded-lg flex items-center justify-center mb-4">
+                        <i data-lucide="book"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">CNEB 2024 Oficial</h3>
+                    <p class="text-slate-600 text-sm mb-4">Documento completo del Currículo Nacional de la Educación Básica actualizado.</p>
+                    <a href="#" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i> Descargar PDF</a>
+                </div>
+                <!-- Tarjeta 2 -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-yellow-100 text-yellow-700 rounded-lg flex items-center justify-center mb-4">
+                        <i data-lucide="compass"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Enfoque por Competencias</h3>
+                    <p class="text-slate-600 text-sm mb-4">Guía metodológica para entender y aplicar el enfoque por competencias en el aula.</p>
+                    <a href="#" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i> Leer Guía</a>
+                </div>
+                <!-- Tarjeta 3 -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition">
+                    <div class="w-12 h-12 bg-orange-100 text-mineduOrange rounded-lg flex items-center justify-center mb-4">
+                        <i data-lucide="folder-open"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-2">Sesiones Modelo</h3>
+                    <p class="text-slate-600 text-sm mb-4">Repositorio de sesiones de aprendizaje destacadas de Inicial, Primaria y Secundaria.</p>
+                    <a href="#" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i> Explorar Carpeta</a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-300 py-6 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="font-medium text-white mb-2">DidácticaWeb4.0</p>
+            <p class="text-sm border-t border-slate-600 pt-4 mt-2">
+                Creado por el Lic. <strong>PERCY TAPIA AYMARA</strong>, PIP de la IE N° 50273 VIRGEN DEL CARMEN – SANTA TERESA - LA CONVENCIÓN
+            </p>
+            <p class="text-xs mt-2 text-slate-500">Soporte técnico: soporte@didacticaweb40.edu.pe | Desarrollado con Inteligencia Artificial</p>
+        </div>
+    </footer>
+
+    <!-- Lógica JavaScript (Equivalente al Backend + Frontend Integrado) -->
+    <script>
+        // Inicializar Iconos
+        lucide.createIcons();
+
+        // ---------------------------------------------------------
+        // 1. Base de Datos Simulada (CNEB Estructura)
+        // ---------------------------------------------------------
+        const cnebData = {
+            "Inicial": {
+                grados: ["3 años", "4 años", "5 años"],
+                areas: {
+                    "Personal Social": [
+                        "Construye su identidad", 
+                        "Convive y participa democráticamente en la búsqueda del bien común"
+                    ],
+                    "Psicomotricidad": [
+                        "Se desenvuelve de manera autónoma a través de su motricidad"
+                    ],
+                    "Comunicación": [
+                        "Se comunica oralmente en su lengua materna", 
+                        "Lee diversos tipos de textos escritos", 
+                        "Crea proyectos desde los lenguajes artísticos"
+                    ],
+                    "Matemática": [
+                        "Resuelve problemas de cantidad", 
+                        "Resuelve problemas de forma, movimiento y localización"
+                    ],
+                    "Ciencia y Tecnología": [
+                        "Indaga mediante métodos científicos para construir sus conocimientos"
+                    ]
+                }
+            },
+            "Primaria": {
+                grados: ["1° Grado", "2° Grado", "3° Grado", "4° Grado", "5° Grado", "6° Grado"],
+                areas: {
+                    "Matemática": [
+                        "Resuelve problemas de cantidad", 
+                        "Resuelve problemas de regularidad, equivalencia y cambio", 
+                        "Resuelve problemas de forma, movimiento y localización", 
+                        "Resuelve problemas de gestión de datos e incertidumbre"
+                    ],
+                    "Comunicación": [
+                        "Se comunica oralmente en su lengua materna", 
+                        "Lee diversos tipos de textos escritos", 
+                        "Escribe diversos tipos de textos"
+                    ],
+                    "Personal Social": [
+                        "Construye su identidad", 
+                        "Convive y participa democráticamente...", 
+                        "Construye interpretaciones históricas", 
+                        "Gestiona responsablemente el espacio y el ambiente", 
+                        "Gestiona responsablemente los recursos económicos"
+                    ],
+                    "Ciencia y Tecnología": [
+                        "Indaga mediante métodos científicos...", 
+                        "Explica el mundo físico basándose en conocimientos...", 
+                        "Diseña y construye soluciones tecnológicas..."
+                    ],
+                    "Arte y Cultura": [
+                        "Aprecia de manera crítica manifestaciones artístico-culturales", 
+                        "Crea proyectos desde los lenguajes artísticos"
+                    ],
+                    "Educación Física": [
+                        "Se desenvuelve de manera autónoma a través de su motricidad", 
+                        "Asume una vida saludable", 
+                        "Interactúa a través de sus habilidades sociomotrices"
+                    ],
+                    "Educación Religiosa": [
+                        "Construye su identidad como persona humana, amada por Dios...", 
+                        "Asume la experiencia del encuentro personal y comunitario con Dios..."
+                    ]
+                }
+            },
+            "Secundaria": {
+                grados: ["1° Grado", "2° Grado", "3° Grado", "4° Grado", "5° Grado"],
+                areas: {
+                    "Matemática": ["Resuelve problemas de cantidad", "Resuelve problemas de regularidad...", "Resuelve problemas de forma...", "Resuelve problemas de gestión de datos..."],
+                    "Comunicación": ["Se comunica oralmente...", "Lee diversos tipos de textos...", "Escribe diversos tipos de textos..."],
+                    "Ciencias Sociales": ["Construye interpretaciones históricas", "Gestiona responsablemente el espacio y el ambiente", "Gestiona responsablemente los recursos económicos"],
+                    "Desarrollo Personal, C. y C.": ["Construye su identidad", "Convive y participa democráticamente"],
+                    "Ciencia y Tecnología": ["Indaga mediante métodos científicos...", "Explica el mundo físico...", "Diseña y construye soluciones tecnológicas..."],
+                    "Educación para el Trabajo": ["Gestiona proyectos de emprendimiento económico o social"],
+                    "Arte y Cultura": ["Aprecia de manera crítica...", "Crea proyectos desde los lenguajes artísticos"],
+                    "Educación Física": ["Se desenvuelve de manera autónoma...", "Asume una vida saludable", "Interactúa a través de sus habilidades..."],
+                    "Inglés": ["Se comunica oralmente en inglés", "Lee diversos tipos de textos en inglés", "Escribe diversos tipos de textos en inglés"]
+                }
+            }
+        };
+
+        // ---------------------------------------------------------
+        // 2. Lógica de Interfaz y Formularios (Cascada)
+        // ---------------------------------------------------------
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // Actualizar Nav Activo
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.target === tabId) {
+                    btn.classList.add('text-mineduYellow', 'border-b-2', 'border-mineduYellow');
+                } else {
+                    btn.classList.remove('text-mineduYellow', 'border-b-2', 'border-mineduYellow');
+                }
+            });
+        }
+
+        function updateGrados() {
+            const nivel = document.getElementById('nivel').value;
+            const gradoSelect = document.getElementById('grado');
+            const areaSelect = document.getElementById('area');
+            const compContainer = document.getElementById('competenciasContainer');
+            
+            gradoSelect.innerHTML = '<option value="">Seleccione Grado</option>';
+            areaSelect.innerHTML = '<option value="">Seleccione Área</option>';
+            areaSelect.disabled = true;
+            compContainer.innerHTML = '<p class="text-slate-400 italic">Seleccione Área primero</p>';
+            
+            if (nivel && cnebData[nivel]) {
+                cnebData[nivel].grados.forEach(g => {
+                    gradoSelect.innerHTML += `<option value="${g}">${g}</option>`;
+                });
+                gradoSelect.disabled = false;
+            } else {
+                gradoSelect.disabled = true;
+            }
+        }
+
+        function updateAreas() {
+            const nivel = document.getElementById('nivel').value;
+            const areaSelect = document.getElementById('area');
+            const compContainer = document.getElementById('competenciasContainer');
+            
+            areaSelect.innerHTML = '<option value="">Seleccione Área</option>';
+            compContainer.innerHTML = '<p class="text-slate-400 italic">Seleccione Área primero</p>';
+            
+            if (nivel && document.getElementById('grado').value !== "") {
+                const areas = Object.keys(cnebData[nivel].areas);
+                areas.forEach(a => {
+                    areaSelect.innerHTML += `<option value="${a}">${a}</option>`;
+                });
+                areaSelect.disabled = false;
+            } else {
+                areaSelect.disabled = true;
+            }
+        }
+
+        function updateCompetencias() {
+            const nivel = document.getElementById('nivel').value;
+            const area = document.getElementById('area').value;
+            const compContainer = document.getElementById('competenciasContainer');
+            
+            compContainer.innerHTML = '';
+            
+            if (nivel && area && cnebData[nivel].areas[area]) {
+                const competencias = cnebData[nivel].areas[area];
+                competencias.forEach((c, index) => {
+                    compContainer.innerHTML += `
+                        <label class="flex items-start gap-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
+                            <input type="checkbox" name="competencia" value="${c}" class="mt-1 accent-mineduBlue">
+                            <span class="text-sm">${c}</span>
+                        </label>
+                    `;
+                });
+            } else {
+                compContainer.innerHTML = '<p class="text-slate-400 italic">Seleccione Área primero</p>';
+            }
+        }
+
+        function updateFormFields() {
+            const tipo = document.getElementById('tipoDocumento').value;
+            const divEnfoque = document.getElementById('divEnfoque');
+            const divTema = document.getElementById('divTema');
+            const labelTema = document.getElementById('labelTema');
+            const divCompetencias = document.getElementById('divCompetencias');
+            const divInstrumento = document.getElementById('divInstrumento');
+
+            // Mostrar todo por defecto
+            divEnfoque.style.display = 'block';
+            divTema.style.display = 'block';
+            divCompetencias.style.display = 'block';
+            divInstrumento.style.display = 'none';
+
+            if (tipo === 'Programación Anual') {
+                divEnfoque.style.display = 'none';
+                divTema.style.display = 'none';
+                divCompetencias.style.display = 'none'; // La IA generará todas las competencias del año
+            } else if (tipo === 'Rúbrica de Evaluación') {
+                divEnfoque.style.display = 'none';
+                labelTema.innerText = "Tema a evaluar";
+            } else if (tipo === 'Unidad Didáctica' || tipo === 'Proyecto de Aprendizaje') {
+                labelTema.innerText = "Título de la Unidad/Proyecto";
+            } else {
+                // Sesión de Aprendizaje
+                labelTema.innerText = "Tema o Título de la Sesión";
+                divInstrumento.style.display = 'block'; // Mostrar la opción de instrumentos solo en la Sesión de Aprendizaje
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 3. Integración de IA (Backend Serverless)
+        // ---------------------------------------------------------
+        // En este entorno, usamos la clave provista automáticamente por el sistema Canvas
+        const apiKey = "AIzaSyDura5AUuwUP2m1tjnEmXo7mlv75n1__G4"; 
+
+        async function generarDocumento() {
+            // Validaciones
+            const tipo = document.getElementById('tipoDocumento').value;
+            const nivel = document.getElementById('nivel').value;
+            const grado = document.getElementById('grado').value;
+            const area = document.getElementById('area').value;
+            const tema = document.getElementById('tema').value.trim();
+            const enfoque = document.getElementById('enfoque').value;
+            const instrumento = document.getElementById('instrumento').value;
+            
+            const competenciasChecked = Array.from(document.querySelectorAll('input[name="competencia"]:checked')).map(cb => cb.value);
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Ajustar validación según tipo de documento
+            let isValid = true;
+            if (!nivel || !grado || !area) isValid = false;
+            
+            if (tipo !== 'Programación Anual') {
+                if (!tema) isValid = false;
+                if (tipo !== 'Rúbrica de Evaluación' && competenciasChecked.length === 0) isValid = false;
+                if (tipo === 'Rúbrica de Evaluación' && competenciasChecked.length === 0) isValid = false;
+            }
+
+            if(!isValid) {
+                errorMsg.innerText = "Por favor, complete los campos requeridos para este tipo de documento.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            errorMsg.classList.add('hidden');
+
+            // UI Feedback
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('generatedContent').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('btnWord').classList.add('hidden');
+            document.getElementById('btnPdf').classList.add('hidden');
+            document.getElementById('btnGenerar').disabled = true;
+            document.getElementById('btnGenerar').classList.add('opacity-50');
+
+            // Preparar Prompts
+            const systemInstruction = `Eres un Experto Docente en Planificación Curricular de Perú con más de 20 años de experiencia en los tres niveles de educación (Inicial, Primaria, Secundaria). Conoces a la perfección el Currículo Nacional de Educación Básica (CNEB) y normativas vigentes del MINEDU.
+Tu tarea es generar documentos formales, estructurados y listos para imprimir, usando el formato oficial del MINEDU. 
+Reglas estrictas de salida:
+1. Usa formato Markdown. Genera tablas para estructurar la información (ej. Datos Informativos, Propósitos de Aprendizaje, Secuencia Didáctica).
+2. SI el documento es una "Sesión de Aprendizaje", EL ÍTEM "V. MOMENTOS DE LA SESIÓN" DEBE ESTAR OBLIGATORIAMENTE EN FORMATO DE TABLA (con columnas: Momentos [Inicio, Desarrollo, Cierre], Estrategias/Actividades, Recursos, y Tiempo).
+3. Si el documento es una "Sesión de Aprendizaje", DEBES incluir al final del documento una sección llamada "FICHA DE TRABAJO PARA EL ESTUDIANTE".
+4. En la ficha del estudiante incluye OBLIGATORIAMENTE una imagen referencial usando sintaxis Markdown así: ![Imagen del tema](https://image.pollinations.ai/prompt/ilustracion_educativa_para_ninos_sobre_TEMA_AQUI?width=600&height=400&nologo=true) asegurándote de reemplazar TEMA_AQUI con el tema de la clase, usando guiones bajos en lugar de espacios y sin caracteres especiales.
+5. Utiliza un tono profesional, pedagógico y claro.
+6. Asegúrate de incluir: Competencias, Capacidades, Desempeños, Criterios de Evaluación y Evidencias según el área y nivel solicitado.
+7. SI el documento es una "Sesión de Aprendizaje", incluye el Instrumento de Evaluación solicitado estructurado adecuadamente (por ejemplo, en formato de tabla para una rúbrica o lista de cotejo) justo antes de la Ficha de Trabajo del Estudiante.`;
+
+            let userPrompt = `Por favor, elabora el siguiente documento de planificación curricular:\n- Tipo de Documento: ${tipo}\n- Nivel Educativo: ${nivel}\n- Grado/Edad: ${grado}\n- Área Curricular: ${area}`;
+            
+            if (tipo !== 'Programación Anual') {
+                userPrompt += `\n- Competencias seleccionadas: ${competenciasChecked.join(" | ")}`;
+                if (tipo !== 'Rúbrica de Evaluación') {
+                    userPrompt += `\n- Enfoque Transversal: ${enfoque}`;
+                }
+                if (tipo === 'Sesión de Aprendizaje') {
+                    userPrompt += `\n- Instrumento de Evaluación solicitado: ${instrumento}`;
+                }
+                userPrompt += `\n- Tema o Título: "${tema}"`;
+            }
+
+            userPrompt += `\n\nGenera el documento completo con todas las partes pedagógicas que exige el MINEDU.`;
+
+            // NUEVA LÓGICA: Inyectar estructura específica si es Programación Anual basada en la tabla proporcionada
+            if (tipo === 'Programación Anual') {
+                userPrompt += `\n\nATENCIÓN: Para la Programación Anual, DEBES estructurar el documento utilizando OBLIGATORIAMENTE las siguientes categorías y características correspondientes al nivel de ${nivel}:\n`;
+                userPrompt += `- Datos institucionales: PEI, PAT, calendario escolar, datos de la IE.\n`;
+                userPrompt += `- Normativa oficial: CNEB de ${nivel}, programas curriculares, mapas de progreso.\n`;
+                userPrompt += `- Distribución del tiempo (OBLIGATORIO usar el Calendario Escolar MINEDU 2026 para la calendarización):\n`;
+                userPrompt += `  * Primer bloque lectivo: 16 de marzo al 15 de mayo (9 semanas de clases).\n`;
+                userPrompt += `  * Semana de gestión: 18 al 22 de mayo.\n`;
+                userPrompt += `  * Segundo bloque lectivo: 25 de mayo al 24 de julio (9 semanas de clases).\n`;
+                userPrompt += `  * Vacaciones de medio año: 27 de julio al 7 de agosto.\n`;
+                userPrompt += `  * Tercer bloque lectivo: 10 de agosto al 9 de octubre (9 semanas de clases).\n`;
+                userPrompt += `  * Semana de gestión: 12 al 16 de octubre.\n`;
+                userPrompt += `  * Cuarto bloque lectivo: 19 de octubre al 18 de diciembre (9 semanas de clases).\n`;
+                userPrompt += `- Competencias y capacidades: Áreas correspondientes al nivel.\n`;
+                
+                if (nivel === 'Inicial') {
+                    userPrompt += `- Unidades didácticas: Experiencias de aprendizaje contextualizadas.\n`;
+                    userPrompt += `- Productos esperados: Evidencias como juegos simbólicos, murales, dramatizaciones.\n`;
+                    userPrompt += `- Evaluación: Fichas de observación, listas de cotejo, portafolio infantil.\n`;
+                    userPrompt += `- Contexto local: Lengua materna, costumbres, entorno familiar y comunitario.\n`;
+                    userPrompt += `- Transversalidad: Enfoques transversales de inclusión, juego, ambiente.\n`;
+                } else if (nivel === 'Primaria') {
+                    userPrompt += `- Unidades didácticas: Proyectos y temas transversales.\n`;
+                    userPrompt += `- Productos esperados: Evidencias como informes, proyectos, producciones artísticas.\n`;
+                    userPrompt += `- Evaluación: Rúbricas, listas de cotejo, escalas de valoración.\n`;
+                    userPrompt += `- Contexto local: Bilingüismo, actividades productivas, tradiciones locales.\n`;
+                    userPrompt += `- Transversalidad: Enfoques transversales ambiental, intercultural, igualdad de género.\n`;
+                } else if (nivel === 'Secundaria') {
+                    userPrompt += `- Unidades didácticas: Proyectos interdisciplinarios y temáticos.\n`;
+                    userPrompt += `- Productos esperados: Evidencias como ensayos, proyectos científicos, debates, emprendimientos.\n`;
+                    userPrompt += `- Evaluación: Rúbricas analíticas, portafolio, pruebas escritas, proyectos.\n`;
+                    userPrompt += `- Contexto local: Problemáticas juveniles, participación ciudadana, entorno socioeconómico.\n`;
+                    userPrompt += `- Transversalidad: Enfoques transversales de ciudadanía, emprendimiento, sostenibilidad.\n`;
+                }
+                userPrompt += `\nPresenta la Programación Anual de manera ordenada, utilizando tablas para la calendarización y distribución de unidades/productos.`;
+            }
+
+            try {
+                const responseText = await fetchWithRetry(systemInstruction, userPrompt);
+                
+                // Renderizar Markdown a HTML
+                const htmlContent = marked.parse(responseText);
+                
+                document.getElementById('generatedContent').innerHTML = htmlContent;
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('generatedContent').classList.remove('hidden');
+                
+                // Mostrar botones de descarga
+                document.getElementById('btnWord').classList.remove('hidden');
+                document.getElementById('btnPdf').classList.remove('hidden');
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                errorMsg.innerText = "Error al conectar con la IA. Por favor, intente nuevamente.";
+                errorMsg.classList.remove('hidden');
+            } finally {
+                document.getElementById('btnGenerar').disabled = false;
+                document.getElementById('btnGenerar').classList.remove('opacity-50');
+            }
+        }
+
+        // Lógica de Reintentos Exponenciales requerida
+        async function fetchWithRetry(systemPrompt, userPrompt, retries = 5) {
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const result = await response.json();
+                    return result.candidates[0].content.parts[0].text;
+
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(res => setTimeout(res, delays[i]));
+                }
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 4. Exportación de Documentos (Word y PDF)
+        // ---------------------------------------------------------
+
+        function exportarWord() {
+            const content = document.getElementById('generatedContent').innerHTML;
+            const tema = document.getElementById('tema').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'documento';
+            
+            // Plantilla HTML compatible con MS Word (.doc)
+            const htmlCompleto = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Documento MINEDU</title>
+                <style>
+                    body { font-family: 'Calibri', sans-serif; font-size: 11pt; }
+                    table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+                    th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                    th { background-color: #f2f2f2; }
+                    h1 { font-size: 16pt; color: #003366; text-align: center; }
+                    h2 { font-size: 14pt; color: #000000; }
+                    h3 { font-size: 12pt; }
+                </style>
+                </head><body>
+                ${content}
+                </body></html>
+            `;
+
+            // Crear Blob y forzar descarga
+            const blob = new Blob(['\ufeff', htmlCompleto], {
+                type: 'application/msword'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Planificacion_${tema}.doc`; // Usamos .doc por simplicidad en Blob frontend
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportarPDF() {
+            const element = document.getElementById('generatedContent');
+            const tema = document.getElementById('tema').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'documento';
+            
+            const opt = {
+                margin:       15,
+                filename:     `Planificacion_${tema}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, allowTaint: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Notificar al usuario que está cargando
+            const btnPdf = document.getElementById('btnPdf');
+            const originalText = btnPdf.innerHTML;
+            btnPdf.innerHTML = '<div class="loader inline-block w-4 h-4 border-2"></div> Generando...';
+            btnPdf.disabled = true;
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btnPdf.innerHTML = originalText;
+                btnPdf.disabled = false;
+            });
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('inicio');
+            updateFormFields();
+        });
+
+    </script>
+</body>
