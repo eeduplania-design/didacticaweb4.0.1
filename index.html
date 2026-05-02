@@ -67,6 +67,7 @@
                     <button onclick="switchTab('inicio')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="inicio">Inicio</button>
                     <button onclick="switchTab('generador')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="generador">Asistente IA</button>
                     <button onclick="switchTab('biblioteca')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="biblioteca">Biblioteca</button>
+                    <button onclick="switchTab('contacto')" class="nav-btn hover:text-mineduYellow font-medium transition-colors" data-target="contacto">Contacto</button>
                 </nav>
                 <button class="md:hidden text-white" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
                     <i data-lucide="menu"></i>
@@ -76,7 +77,8 @@
             <div id="mobile-menu" class="hidden md:hidden mt-4 pb-2 flex flex-col gap-2">
                 <button onclick="switchTab('inicio'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2 border-b border-blue-800">Inicio</button>
                 <button onclick="switchTab('generador'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2 border-b border-blue-800">Asistente IA</button>
-                <button onclick="switchTab('biblioteca'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2">Biblioteca</button>
+                <button onclick="switchTab('biblioteca'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2 border-b border-blue-800">Biblioteca</button>
+                <button onclick="switchTab('contacto'); document.getElementById('mobile-menu').classList.add('hidden')" class="text-left py-2">Contacto</button>
             </div>
         </div>
     </header>
@@ -272,7 +274,7 @@
                     </div>
                     <h3 class="font-bold text-lg mb-2">CNEB 2024 Oficial</h3>
                     <p class="text-slate-600 text-sm mb-4">Documento completo del Currículo Nacional de la Educación Básica actualizado.</p>
-                    <a href="#" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i> Descargar PDF</a>
+                    <a href="http://www.minedu.gob.pe/curriculo/pdf/curriculo-nacional-de-la-educacion-basica.pdf" target="_blank" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i> Descargar PDF</a>
                 </div>
                 <!-- Tarjeta 2 -->
                 <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition">
@@ -281,7 +283,7 @@
                     </div>
                     <h3 class="font-bold text-lg mb-2">Enfoque por Competencias</h3>
                     <p class="text-slate-600 text-sm mb-4">Guía metodológica para entender y aplicar el enfoque por competencias en el aula.</p>
-                    <a href="#" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i> Leer Guía</a>
+                    <a href="http://www.minedu.gob.pe/curriculo/" target="_blank" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i> Acceder a las Guías</a>
                 </div>
                 <!-- Tarjeta 3 -->
                 <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition">
@@ -290,7 +292,30 @@
                     </div>
                     <h3 class="font-bold text-lg mb-2">Sesiones Modelo</h3>
                     <p class="text-slate-600 text-sm mb-4">Repositorio de sesiones de aprendizaje destacadas de Inicial, Primaria y Secundaria.</p>
-                    <a href="#" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i> Explorar Carpeta</a>
+                    <a href="https://aprendoencasa.pe/" target="_blank" class="text-mineduOrange text-sm font-semibold hover:underline flex items-center gap-1"><i data-lucide="external-link" class="w-4 h-4"></i> Explorar Recursos</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- VISTA: CONTACTO (NUEVA) -->
+        <section id="contacto" class="tab-content max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
+            <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-green-500">
+                <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="message-circle" class="w-10 h-10"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-mineduBlue mb-4">Contacto Directo</h2>
+                <p class="text-lg text-slate-600 mb-6">¿Necesita ayuda con la plataforma, la Inteligencia Artificial o tiene alguna consulta pedagógica? Puede escribirme directamente por WhatsApp. ¡Estaré encantado de apoyarlo!</p>
+                
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 max-w-md mx-auto mb-8">
+                    <p class="text-slate-500 text-sm font-semibold uppercase tracking-wider mb-2">Asesor Pedagógico y Creador</p>
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">Lic. Percy Tapia Aymara</h3>
+                    <p class="text-slate-600 mb-4">PIP de la IE N° 50273 Virgen del Carmen<br>Santa Teresa - La Convención</p>
+                    
+                    <!-- Enlace directo a la API de WhatsApp con número de Perú (51) -->
+                    <a href="https://wa.me/51983014023?text=Hola%20Lic.%20Percy%20Tapia,%20le%20escribo%20desde%20la%20plataforma%20DidácticaWeb4.0" target="_blank" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex justify-center items-center gap-2">
+                        <i data-lucide="smartphone" class="w-5 h-5"></i>
+                        Escribir al WhatsApp (983 014 023)
+                    </a>
                 </div>
             </div>
         </section>
