@@ -442,9 +442,9 @@
         }
 
         // =========================================================
-        // LLAVE API CONFIGURADA AUTOMÁTICAMENTE
+        // LLAVE API DE ZHIPUAI (PÁGINA CHINA) CONFIGURADA AUTOMÁTICAMENTE
         // =========================================================
-        const apiKey = "AIzaSyC8Zk2k2gYDYiPuoGHgqS0DT9aPqDRQ4Ks"; 
+        const apiKey = "1873a64e8c354d2db22b90ff26b95962.i1Aazxd3lwCsQrLr"; 
         // =========================================================
 
         async function generarDocumento() {
@@ -549,6 +549,7 @@ Reglas estrictas de salida:
             }
 
             try {
+                // LLAMAMOS AL MOTOR DE ZHIPUAI CON LA CLAVE
                 const responseText = await fetchWithRetry(systemInstruction, userPrompt, cleanKey);
                 
                 const htmlContent = marked.parse(responseText);
@@ -571,19 +572,20 @@ Reglas estrictas de salida:
             }
         }
 
+        // =========================================================
+        // MOTOR RECONSTRUIDO EXCLUSIVAMENTE PARA ZHIPUAI (GLM-4)
+        // =========================================================
         async function fetchWithRetry(systemPrompt, userPrompt, apiKey, retries = 3) {
             const delays = [1000, 2000, 4000];
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             
-            // ⚠️ AQUÍ APAGAMOS LOS FILTROS DE SEGURIDAD QUE BLOQUEAN TEMAS EDUCATIVOS
+            // LA URL OFICIAL DE LA INTELIGENCIA ARTIFICIAL CHINA
+            const url = `https://open.bigmodel.cn/api/paas/v4/chat/completions`;
+            
             const payload = {
-                contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                model: "glm-4", // Modelo inteligente
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt }
                 ]
             };
 
@@ -591,7 +593,10 @@ Reglas estrictas de salida:
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
                         body: JSON.stringify(payload)
                     });
 
@@ -601,24 +606,16 @@ Reglas estrictas de salida:
                             const errorJson = JSON.parse(errorText);
                             errorText = errorJson.error?.message || errorText;
                         } catch(e) {}
-                        throw new Error(`Google rechazó la conexión. Motivo: ${errorText}`);
+                        throw new Error(`Conexión rechazada por ZhipuAI. Motivo: ${errorText}`);
                     }
                     
                     const result = await response.json();
                     
-                    // NUEVO DETECTOR DE ERRORES PROFUNDO:
-                    if (!result.candidates || result.candidates.length === 0) {
-                        if (result.promptFeedback && result.promptFeedback.blockReason) {
-                            throw new Error("Google bloqueó el contenido por seguridad. Razón: " + result.promptFeedback.blockReason);
-                        }
-                        throw new Error("Google devolvió un objeto vacío. Probable fallo temporal de la IA.");
-                    }
-                    
-                    if (result.candidates[0].finishReason === 'SAFETY') {
-                        throw new Error("Generación detenida por el filtro de palabras sensibles de Google.");
+                    if (!result.choices || result.choices.length === 0) {
+                        throw new Error("La IA no devolvió ningún texto. Intente nuevamente.");
                     }
 
-                    return result.candidates[0].content.parts[0].text;
+                    return result.choices[0].message.content;
 
                 } catch (error) {
                     if (i === retries - 1) throw error;
