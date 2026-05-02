@@ -512,6 +512,9 @@ Reglas estrictas de salida:
 
             userPrompt += `\n\nGenera el documento completo con todas las partes pedagógicas que exige el MINEDU.`;
 
+            // =========================================================================
+            // INYECCIÓN DE LA INFORMACIÓN DE LAS IMÁGENES AL "CEREBRO" DE LA IA
+            // =========================================================================
             if (tipo === 'Programación Anual') {
                 userPrompt += `\n\nATENCIÓN: Para la Programación Anual, DEBES estructurar el documento utilizando OBLIGATORIAMENTE las siguientes categorías y características correspondientes al nivel de ${nivel}:\n`;
                 userPrompt += `- Datos institucionales: PEI, PAT, calendario escolar, datos de la IE.\n`;
@@ -546,7 +549,44 @@ Reglas estrictas de salida:
                     userPrompt += `- Transversalidad: Enfoques transversales de ciudadanía, emprendimiento, sostenibilidad.\n`;
                 }
                 userPrompt += `\nPresenta la Programación Anual de manera ordenada, utilizando tablas para la calendarización y distribución de unidades/productos.`;
+            
+            } else if (tipo === 'Unidad Didáctica') {
+                userPrompt += `\n\nATENCIÓN: Para la Unidad Didáctica, DEBES estructurar el documento utilizando OBLIGATORIAMENTE la siguiente matriz oficial del MINEDU:\n`;
+                userPrompt += `- I. Datos Informativos (DRE, UGEL, IE, Director, Docente, Ciclo/Grado, Área, Duración).\n`;
+                userPrompt += `- II. Situación Significativa (Descripción del contexto, problema o necesidad, y planteamiento del reto/desafío).\n`;
+                userPrompt += `- III. Propósitos y Evidencias de Aprendizaje (Construye una tabla matriz con: Competencias, Capacidades, Desempeños, Criterios de Evaluación, Evidencias e Instrumentos).\n`;
+                userPrompt += `- IV. Enfoques Transversales (Valores y actitudes observables).\n`;
+                userPrompt += `- V. Secuencia de Sesiones (Lista detallada y cronológica de sesiones que incluyan Título, Propósito y Actividad principal).\n`;
+                userPrompt += `- VI. Materiales y Recursos Educativos a utilizar.\n`;
+                userPrompt += `- VII. Reflexiones sobre el Aprendizaje.\n`;
+            
+            } else if (tipo === 'Proyecto de Aprendizaje') {
+                userPrompt += `\n\nATENCIÓN: Para el Proyecto de Aprendizaje, DEBES estructurar el documento utilizando OBLIGATORIAMENTE las siguientes fases:\n`;
+                userPrompt += `- I. Datos Generales.\n`;
+                userPrompt += `- II. Identificación del Problema y Situación Significativa.\n`;
+                userPrompt += `- III. Planificación del Proyecto (Pre-planificación del docente y Planificación negociada con los estudiantes).\n`;
+                userPrompt += `- IV. Propósitos de Aprendizaje y Evaluación (Matriz de competencias).\n`;
+                userPrompt += `- V. Ejecución del Proyecto (Secuencia de actividades/sesiones cronogramadas orientadas a un producto final).\n`;
+                userPrompt += `- VI. Comunicación y Socialización del Proyecto.\n`;
+                userPrompt += `- VII. Evaluación del Proyecto.\n`;
+            
+            } else if (tipo === 'Sesión de Aprendizaje') {
+                userPrompt += `\n\nATENCIÓN: Para la Sesión de Aprendizaje, OBLIGATORIAMENTE debes incluir:\n`;
+                userPrompt += `- I. Datos Informativos.\n`;
+                userPrompt += `- II. Propósitos y Evidencias de Aprendizaje (Tabla con Competencias, Desempeños, Criterios y Evidencias).\n`;
+                userPrompt += `- III. Preparación de la Sesión (¿Qué necesitamos hacer antes? ¿Qué recursos o materiales se utilizarán?).\n`;
+                userPrompt += `- IV. Momentos de la Sesión (OBLIGATORIO EN TABLA: Inicio, Desarrollo, Cierre; con tiempos, estrategias y actividades detalladas paso a paso).\n`;
+                userPrompt += `- V. Reflexiones sobre el Aprendizaje (preguntas de metacognición).\n`;
+                userPrompt += `- VI. Anexo: Instrumento de Evaluación estructurado (${instrumento}).\n`;
+                userPrompt += `- VII. Anexo: FICHA DE TRABAJO PARA EL ESTUDIANTE (con imagen incluida).\n`;
+            
+            } else if (tipo === 'Rúbrica de Evaluación') {
+                userPrompt += `\n\nATENCIÓN: Para la Rúbrica de Evaluación, DEBES crear una matriz estructurada con:\n`;
+                userPrompt += `- Criterios de evaluación (en las filas) estrictamente basados en las capacidades de la competencia seleccionada.\n`;
+                userPrompt += `- Niveles de logro (en las columnas): Inicio, En Proceso, Logro Esperado, Logro Destacado.\n`;
+                userPrompt += `- Descriptores cualitativos, claros y precisos para cada nivel de logro.\n`;
             }
+            // =========================================================================
 
             try {
                 // LLAMAMOS AL MOTOR DE ZHIPUAI CON LA CLAVE
