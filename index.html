@@ -12,6 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- PDF Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- LIBRERÍAS NUEVAS PARA WORD: Generador de .docx reales -->
+    <script src="https://unpkg.com/html-docx-js@0.3.1/dist/html-docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -586,10 +589,8 @@ Reglas estrictas de salida:
                 userPrompt += `- Niveles de logro (en las columnas): Inicio, En Proceso, Logro Esperado, Logro Destacado.\n`;
                 userPrompt += `- Descriptores cualitativos, claros y precisos para cada nivel de logro.\n`;
             }
-            // =========================================================================
 
             try {
-                // LLAMAMOS AL MOTOR DE ZHIPUAI CON LA CLAVE
                 const responseText = await fetchWithRetry(systemInstruction, userPrompt, cleanKey);
                 
                 const htmlContent = marked.parse(responseText);
@@ -664,38 +665,77 @@ Reglas estrictas de salida:
             }
         }
 
-        function exportarWord() {
-            const content = document.getElementById('generatedContent').innerHTML;
-            const tema = document.getElementById('tema').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'documento';
+        // =========================================================
+        // NUEVO SISTEMA DE EXPORTACIÓN A WORD (INCRUSTA IMÁGENES Y CREA .DOCX REAL)
+        // =========================================================
+        async function exportarWord() {
+            const btnWord = document.getElementById('btnWord');
+            const originalText = btnWord.innerHTML;
             
-            const htmlCompleto = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Documento MINEDU</title>
-                <style>
-                    body { font-family: 'Calibri', sans-serif; font-size: 11pt; }
-                    table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
-                    th, td { border: 1px solid black; padding: 5px; text-align: left; }
-                    th { background-color: #f2f2f2; }
-                    h1 { font-size: 16pt; color: #003366; text-align: center; }
-                    h2 { font-size: 14pt; color: #000000; }
-                    h3 { font-size: 12pt; }
-                </style>
-                </head><body>
-                ${content}
-                </body></html>
-            `;
+            // Mostrar estado de carga (la transformación de imagen toma un par de segundos)
+            btnWord.innerHTML = '<div class="loader inline-block w-4 h-4 border-2"></div> Generando...';
+            btnWord.disabled = true;
 
-            const blob = new Blob(['\ufeff', htmlCompleto], {
-                type: 'application/msword'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Planificacion_${tema}.doc`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            try {
+                // Clonar el contenido para no modificar lo que se ve en la pantalla
+                const clone = document.getElementById('generatedContent').cloneNode(true);
+                const tema = document.getElementById('tema').value.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'documento';
+
+                // Buscar todas las imágenes y convertirlas a Base64 para que Word las incruste internamente
+                const images = clone.querySelectorAll('img');
+                for (let img of images) {
+                    try {
+                        const response = await fetch(img.src);
+                        const blob = await response.blob();
+                        const dataUrl = await new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.readAsDataURL(blob);
+                        });
+                        img.src = dataUrl;
+                        // Word requiere dimensiones predeterminadas para no romper el documento
+                        img.width = 600;
+                        img.height = 400;
+                    } catch (e) {
+                        console.warn("No se pudo incrustar una imagen en el Word:", e);
+                    }
+                }
+
+                // Generar la estructura de la página
+                const htmlCompleto = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="utf-8">
+                        <title>Documento MINEDU</title>
+                        <style>
+                            body { font-family: 'Calibri', sans-serif; font-size: 11pt; }
+                            table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+                            th, td { border: 1px solid black; padding: 5px; text-align: left; }
+                            th { background-color: #f2f2f2; }
+                            h1 { font-size: 16pt; color: #003366; text-align: center; }
+                            h2 { font-size: 14pt; color: #000000; }
+                            h3 { font-size: 12pt; }
+                            img { max-width: 100%; height: auto; }
+                        </style>
+                    </head>
+                    <body>
+                        ${clone.innerHTML}
+                    </body>
+                    </html>
+                `;
+
+                // Convertir el código HTML con las imágenes a un ZIP estructurado .docx usando la nueva librería
+                const converted = htmlDocx.asBlob(htmlCompleto, {orientation: 'portrait'});
+                saveAs(converted, `Planificacion_${tema}.docx`);
+
+            } catch (error) {
+                console.error("Error al exportar a Word:", error);
+                alert("Ocurrió un error al generar el archivo de Word.");
+            } finally {
+                btnWord.innerHTML = originalText;
+                btnWord.disabled = false;
+            }
         }
 
         function exportarPDF() {
