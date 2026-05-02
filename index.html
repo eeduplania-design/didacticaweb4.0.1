@@ -573,12 +573,18 @@ Reglas estrictas de salida:
 
         async function fetchWithRetry(systemPrompt, userPrompt, apiKey, retries = 3) {
             const delays = [1000, 2000, 4000];
-            
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             
+            // ⚠️ AQUÍ APAGAMOS LOS FILTROS DE SEGURIDAD QUE BLOQUEAN TEMAS EDUCATIVOS
             const payload = {
                 contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-                systemInstruction: { role: "system", parts: [{ text: systemPrompt }] }
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                ]
             };
 
             for (let i = 0; i < retries; i++) {
@@ -599,9 +605,19 @@ Reglas estrictas de salida:
                     }
                     
                     const result = await response.json();
+                    
+                    // NUEVO DETECTOR DE ERRORES PROFUNDO:
                     if (!result.candidates || result.candidates.length === 0) {
-                        throw new Error("La IA de Google no devolvió ningún texto. Intente nuevamente.");
+                        if (result.promptFeedback && result.promptFeedback.blockReason) {
+                            throw new Error("Google bloqueó el contenido por seguridad. Razón: " + result.promptFeedback.blockReason);
+                        }
+                        throw new Error("Google devolvió un objeto vacío. Probable fallo temporal de la IA.");
                     }
+                    
+                    if (result.candidates[0].finishReason === 'SAFETY') {
+                        throw new Error("Generación detenida por el filtro de palabras sensibles de Google.");
+                    }
+
                     return result.candidates[0].content.parts[0].text;
 
                 } catch (error) {
