@@ -191,8 +191,19 @@
                             <option value="Lista de cotejo">Lista de cotejo</option>
                             <option value="Rúbrica">Rúbrica</option>
                             <option value="Escala de valoración">Escala de valoración</option>
-                            <option value="Ficha de observación">Ficha de observación</option>
+                            <option value="Ficha de observation">Ficha de observación</option>
                             <option value="Portafolio">Portafolio</option>
+                        </select>
+                    </div>
+
+                    <!-- Tiempo de la Sesión (Solo para Sesión de Aprendizaje) -->
+                    <div id="divTiempo" style="display: none;">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1 text-mineduBlue">Tiempo de la Sesión</label>
+                        <select id="tiempo" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-mineduYellow outline-none bg-blue-50">
+                            <option value="45 minutos">45 minutos (1 bloque)</option>
+                            <option value="90 minutos" selected>90 minutos (2 bloques)</option>
+                            <option value="135 minutos">135 minutos (3 bloques)</option>
+                            <option value="180 minutos">180 minutos (4 bloques)</option>
                         </select>
                     </div>
 
@@ -423,11 +434,13 @@
             const labelTema = document.getElementById('labelTema');
             const divCompetencias = document.getElementById('divCompetencias');
             const divInstrumento = document.getElementById('divInstrumento');
+            const divTiempo = document.getElementById('divTiempo');
 
             divEnfoque.style.display = 'block';
             divTema.style.display = 'block';
             divCompetencias.style.display = 'block';
             divInstrumento.style.display = 'none';
+            divTiempo.style.display = 'none';
 
             if (tipo === 'Programación Anual') {
                 divEnfoque.style.display = 'none';
@@ -441,6 +454,7 @@
             } else {
                 labelTema.innerText = "Tema o Título de la Sesión";
                 divInstrumento.style.display = 'block';
+                divTiempo.style.display = 'block';
             }
         }
 
@@ -464,6 +478,7 @@
             const tema = document.getElementById('tema').value.trim();
             const enfoque = document.getElementById('enfoque').value;
             const instrumento = document.getElementById('instrumento').value;
+            const tiempo = document.getElementById('tiempo').value;
             const competenciasChecked = Array.from(document.querySelectorAll('input[name="competencia"]:checked')).map(cb => cb.value);
 
             let isValid = true;
@@ -509,6 +524,7 @@ Reglas estrictas de salida:
                 }
                 if (tipo === 'Sesión de Aprendizaje') {
                     userPrompt += `\n- Instrumento de Evaluación solicitado: ${instrumento}`;
+                    userPrompt += `\n- Tiempo de la sesión: ${tiempo}`;
                 }
                 userPrompt += `\n- Tema o Título: "${tema}"`;
             }
@@ -575,10 +591,10 @@ Reglas estrictas de salida:
             
             } else if (tipo === 'Sesión de Aprendizaje') {
                 userPrompt += `\n\nATENCIÓN: Para la Sesión de Aprendizaje, OBLIGATORIAMENTE debes incluir:\n`;
-                userPrompt += `- I. Datos Informativos.\n`;
+                userPrompt += `- I. Datos Informativos (Asegúrate de incluir la duración de: ${tiempo}).\n`;
                 userPrompt += `- II. Propósitos y Evidencias de Aprendizaje (Tabla con Competencias, Desempeños, Criterios y Evidencias).\n`;
                 userPrompt += `- III. Preparación de la Sesión (¿Qué necesitamos hacer antes? ¿Qué recursos o materiales se utilizarán?).\n`;
-                userPrompt += `- IV. Momentos de la Sesión (OBLIGATORIO EN TABLA: Inicio, Desarrollo, Cierre; con tiempos, estrategias y actividades detalladas paso a paso).\n`;
+                userPrompt += `- IV. Momentos de la Sesión (OBLIGATORIO EN TABLA: Inicio, Desarrollo, Cierre; distribuyendo lógicamente los ${tiempo} en total, con estrategias y actividades detalladas paso a paso).\n`;
                 userPrompt += `- V. Reflexiones sobre el Aprendizaje (preguntas de metacognición).\n`;
                 userPrompt += `- VI. Anexo: Instrumento de Evaluación estructurado (${instrumento}).\n`;
                 userPrompt += `- VII. Anexo: FICHA DE TRABAJO PARA EL ESTUDIANTE (con imagen incluida).\n`;
