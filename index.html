@@ -451,13 +451,15 @@
             const errorMsg = document.getElementById('errorMsg');
             errorMsg.classList.add('hidden'); // Ocultar errores previos
             
+            const cleanKey = apiKey.trim(); // Limpia espacios accidentales en la clave
+
             // 1. DETECTOR AUTOMÁTICO DE CLAVES INVÁLIDAS
-            if (!apiKey || apiKey === "PEGUE_SU_CLAVE_AIza_AQUI" || apiKey === "") {
+            if (!cleanKey || cleanKey === "PEGUE_SU_CLAVE_AIza_AQUI" || cleanKey === "") {
                 errorMsg.innerHTML = "<strong>¡ALERTA!</strong> Aún no ha colocado su API KEY de Google en el código.<br>Busque la línea ~538 en GitHub y pegue su clave.";
                 errorMsg.classList.remove('hidden');
                 return;
             }
-            if (!apiKey.startsWith("AIza")) {
+            if (!cleanKey.startsWith("AIza")) {
                 errorMsg.innerHTML = "<strong>¡ERROR DE CLAVE!</strong> La clave que ha colocado es inválida. Debe empezar con las letras <b>AIza</b>. Recuerde no usar la clave antigua de ZhipuAI.";
                 errorMsg.classList.remove('hidden');
                 return;
@@ -559,7 +561,8 @@ Reglas estrictas de salida:
             }
 
             try {
-                const responseText = await fetchWithRetry(systemInstruction, userPrompt);
+                // LLAMADA AL MOTOR ACTUALIZADO
+                const responseText = await fetchWithRetry(systemInstruction, userPrompt, cleanKey);
                 
                 const htmlContent = marked.parse(responseText);
                 document.getElementById('generatedContent').innerHTML = htmlContent;
@@ -581,15 +584,16 @@ Reglas estrictas de salida:
             }
         }
 
-        async function fetchWithRetry(systemPrompt, userPrompt, retries = 5) {
-            const delays = [1000, 2000, 4000, 8000, 16000];
+        // MOTOR ACTUALIZADO Y ESTRICTO PARA GEMINI 1.5 FLASH
+        async function fetchWithRetry(systemPrompt, userPrompt, apiKey, retries = 3) {
+            const delays = [1000, 2000, 4000];
             
-            // EL MOTOR OFICIAL DE GOOGLE (AQUÍ ESTÁ LA CORRECCIÓN):
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             
+            // Estructura estricta exigida por Google
             const payload = {
-                contents: [{ parts: [{ text: userPrompt }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] }
+                contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+                systemInstruction: { role: "system", parts: [{ text: systemPrompt }] }
             };
 
             for (let i = 0; i < retries; i++) {
@@ -601,11 +605,19 @@ Reglas estrictas de salida:
                     });
 
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error?.message || `Fallo en el servidor de Google (Código: ${response.status})`);
+                        let errorText = await response.text();
+                        try {
+                            // Intenta leer el error exacto que envía Google
+                            const errorJson = JSON.parse(errorText);
+                            errorText = errorJson.error?.message || errorText;
+                        } catch(e) {}
+                        throw new Error(`Google rechazó la conexión. Motivo: ${errorText}`);
                     }
                     
                     const result = await response.json();
+                    if (!result.candidates || result.candidates.length === 0) {
+                        throw new Error("La IA de Google no devolvió ningún texto. Intente nuevamente.");
+                    }
                     return result.candidates[0].content.parts[0].text;
 
                 } catch (error) {
