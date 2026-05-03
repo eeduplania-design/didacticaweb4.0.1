@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- PDF Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <!-- LIBRERÍAS NUEVAS PARA WORD: Generador de .docx reales -->
+    <!-- LIBRERÍAS NUEVAS PARA WORD -->
     <script src="https://unpkg.com/html-docx-js@0.3.1/dist/html-docx.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     
@@ -54,6 +54,10 @@
         .chat-content ul { list-style-type: disc; padding-left: 1.2rem; margin-bottom: 0.5rem; }
         .chat-content ol { list-style-type: decimal; padding-left: 1.2rem; margin-bottom: 0.5rem; }
         .chat-content strong { font-weight: 700; color: #003366; }
+        
+        /* Animación para el micrófono escuchando */
+        .mic-listening { color: #ef4444 !important; animation: pulse-mic 1.5s infinite; }
+        @keyframes pulse-mic { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body class="bg-slate-50 flex flex-col min-h-screen font-sans text-slate-800 relative">
@@ -96,7 +100,7 @@
         <section id="inicio" class="tab-content active max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
             <div class="bg-white p-8 rounded-2xl shadow-lg border-t-4 border-mineduOrange">
                 <h2 class="text-3xl font-bold text-mineduBlue mb-4">Bienvenido a DidácticaWeb4.0</h2>
-                <p class="text-lg text-slate-600 mb-6">Plataforma de planificación curricular potenciada por Inteligencia Artificial, diseñada exclusivamente para docentes de Educación Básica Regular (EBR) en el Perú.</p>
+                <p class="text-lg text-slate-600 mb-6">La primera plataforma de planificación curricular potenciada por Inteligencia Artificial, diseñada exclusivamente para docentes de Educación Básica Regular (EBR) en el Perú.</p>
                 <div class="grid md:grid-cols-3 gap-6 mb-8 text-left">
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <i data-lucide="layout-template" class="text-mineduOrange w-8 h-8 mb-2"></i>
@@ -327,7 +331,7 @@
 
     </main>
 
-    <!-- AGENTE IA FLOTANTE (CHATBOT) -->
+    <!-- AGENTE IA FLOTANTE (CHATBOT CON VOZ) -->
     <div id="chat-widget" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
         <!-- Ventana de Chat (Oculta por defecto) -->
         <div id="chat-window" class="hidden bg-white w-[340px] sm:w-[400px] rounded-2xl shadow-2xl border border-slate-200 mb-4 overflow-hidden flex-col h-[500px] transition-all">
@@ -342,9 +346,16 @@
                         <p class="text-[10px] text-blue-200">En línea</p>
                     </div>
                 </div>
-                <button onclick="toggleChat()" class="hover:text-mineduYellow transition">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <div class="flex gap-3">
+                    <!-- Botón Activar/Desactivar Voz (Altavoz) -->
+                    <button onclick="toggleVoice()" id="voice-toggle-btn" class="text-white hover:text-mineduYellow transition" title="Activar/Desactivar lectura en voz alta">
+                        <i data-lucide="volume-x" id="voice-icon" class="w-5 h-5"></i>
+                    </button>
+                    <!-- Botón Cerrar Chat -->
+                    <button onclick="toggleChat()" class="hover:text-mineduYellow transition">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
             </div>
             <!-- Mensajes -->
             <div id="chat-messages" class="flex-grow p-4 overflow-y-auto bg-slate-50 flex flex-col gap-4 text-sm scroll-smooth">
@@ -354,12 +365,15 @@
                         <i data-lucide="bot" class="w-5 h-5 text-mineduBlue"></i>
                     </div>
                     <div class="bg-white border border-slate-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-700 chat-content">
-                        <p>¡Hola colega! Soy tu <strong>Asistente IA experto en el CNEB</strong>. ¿En qué puedo ayudarte hoy? Puedes hacerme consultas pedagógicas o pedirme ideas de actividades.</p>
+                        <p>¡Hola colega! Soy tu <strong>Asistente IA experto en el CNEB</strong>. Escribe o usa el micrófono para dictarme tu consulta pedagógica.</p>
                     </div>
                 </div>
             </div>
-            <!-- Input -->
-            <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+            <!-- Input y Controles de Envío/Micrófono -->
+            <div class="p-3 bg-white border-t border-slate-200 flex gap-2 items-center">
+                <button onclick="startDictation()" id="mic-btn" class="text-slate-500 hover:text-mineduOrange transition p-1" title="Dictar por voz">
+                    <i data-lucide="mic" id="mic-icon" class="w-5 h-5"></i>
+                </button>
                 <input type="text" id="chat-input" placeholder="Escribe tu consulta aquí..." class="flex-grow p-2.5 border border-slate-300 rounded-xl focus:outline-none focus:border-mineduBlue focus:ring-2 focus:ring-blue-100 text-sm" onkeypress="if(event.key === 'Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()" class="bg-mineduBlue hover:bg-blue-800 text-white p-2.5 rounded-xl transition-colors flex items-center justify-center shadow-md">
                     <i data-lucide="send" class="w-4 h-4"></i>
@@ -754,14 +768,97 @@ Reglas estrictas de salida:
         }
 
         // =========================================================
-        // LÓGICA DEL AGENTE IA FLOTANTE (CHATBOT)
+        // LÓGICA DEL AGENTE IA FLOTANTE (CHATBOT CON VOZ)
         // =========================================================
         let chatHistory = [
             { 
                 role: "system", 
-                content: "Eres el Asesor Pedagógico IA de DidácticaWeb4.0. Ayudas a los docentes peruanos con dudas rápidas sobre el CNEB, estrategias didácticas, y evaluación formativa. Sé breve, amable, y responde usando el formato oficial del MINEDU de Perú." 
+                content: "Eres el Asesor Pedagógico IA de DidácticaWeb4.0. Ayudas a los docentes peruanos con dudas rápidas sobre el CNEB, estrategias didácticas, y evaluación formativa. Sé breve, conversacional y amable." 
             }
         ];
+
+        let voiceEnabled = false;
+
+        // Configuración de Reconocimiento de Voz (Dictado)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.lang = 'es-PE'; // Español de Perú
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('chat-input').value += transcript;
+                stopDictationUI();
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Error de reconocimiento de voz:", event.error);
+                stopDictationUI();
+            };
+
+            recognition.onend = function() {
+                stopDictationUI();
+            };
+        }
+
+        function startDictation() {
+            if (!recognition) {
+                alert("Lo siento, su navegador no soporta el reconocimiento de voz. Intente usar Google Chrome.");
+                return;
+            }
+            
+            const micIcon = document.getElementById('mic-icon');
+            if (micIcon.classList.contains('mic-listening')) {
+                recognition.stop();
+                stopDictationUI();
+            } else {
+                recognition.start();
+                micIcon.classList.add('mic-listening');
+                document.getElementById('chat-input').placeholder = "Escuchando... hable ahora.";
+            }
+        }
+
+        function stopDictationUI() {
+            const micIcon = document.getElementById('mic-icon');
+            micIcon.classList.remove('mic-listening');
+            document.getElementById('chat-input').placeholder = "Escribe tu consulta aquí...";
+        }
+
+        // Configuración de Síntesis de Voz (IA hablando)
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            const voiceIcon = document.getElementById('voice-icon');
+            
+            if (voiceEnabled) {
+                voiceIcon.setAttribute('data-lucide', 'volume-2');
+                voiceIcon.classList.add('text-mineduYellow');
+            } else {
+                voiceIcon.setAttribute('data-lucide', 'volume-x');
+                voiceIcon.classList.remove('text-mineduYellow');
+                window.speechSynthesis.cancel(); // Detiene si estaba hablando
+            }
+            lucide.createIcons();
+        }
+
+        function speakText(text) {
+            if (!voiceEnabled || !window.speechSynthesis) return;
+
+            window.speechSynthesis.cancel(); // Detiene cualquier lectura anterior
+            
+            // Limpiamos el texto de códigos markdown (asteriscos, corchetes, numerales) para que se lea natural
+            const cleanText = text.replace(/[*_#`\[\]]/g, '').replace(/-\s/g, '. ');
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'es-PE';
+            utterance.rate = 1.05; // Velocidad normal-rápida
+            utterance.pitch = 1.1; // Tono ligeramente más agudo para que suene como asistente
+            
+            window.speechSynthesis.speak(utterance);
+        }
 
         function toggleChat() {
             const chatWindow = document.getElementById('chat-window');
@@ -769,6 +866,8 @@ Reglas estrictas de salida:
             chatWindow.classList.toggle('flex');
             if (!chatWindow.classList.contains('hidden')) {
                 document.getElementById('chat-input').focus();
+            } else {
+                window.speechSynthesis.cancel(); // Calla a la IA si se cierra el chat
             }
         }
 
@@ -844,6 +943,10 @@ Reglas estrictas de salida:
                         </div>
                     </div>
                 `;
+                
+                // Si la voz está activada, el asistente leerá la respuesta
+                speakText(aiResponse);
+
             } catch (error) {
                 console.error(error);
                 document.getElementById(loadingId).remove();
